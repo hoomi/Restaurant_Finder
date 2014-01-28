@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Restaurant Finder</string>
+    <string name="on_the_map">Map</string>
+    <string name="restaurants_list">List</string>
+    <string name="action_settings">Settings</string>
+
+</resources>
