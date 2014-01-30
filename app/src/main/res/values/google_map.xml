@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="map_api_key">AIzaSyBAuOIkL9DeqI9VVl6JbxdhM9XLcFn6WJI</string>
+    <string name="places_api_key">AIzaSyCHq3G6l8a82bAqhXAQbIIHZpbCnFzp4c0</string>
 </resources>

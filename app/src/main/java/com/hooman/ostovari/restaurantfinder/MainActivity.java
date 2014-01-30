@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.hooman.ostovari.android.restaurantfinder.R;
 import com.hooman.ostovari.restaurantfinder.ui.MapFragment;
+import com.hooman.ostovari.restaurantfinder.utils.LocationProvider;
 
 import java.util.Locale;
 
@@ -24,6 +25,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 
     SectionsPagerAdapter mSectionsPagerAdapter;
+    private LocationProvider locationProvider;
 
     ViewPager mViewPager;
 
@@ -53,8 +55,22 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
+        LocationProvider.initialize(this);
+        locationProvider = LocationProvider.getInstance();
     }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationProvider.removeLocationUpdates();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        locationProvider.requestLocationUpdates();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

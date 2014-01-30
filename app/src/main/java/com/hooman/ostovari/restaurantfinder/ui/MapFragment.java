@@ -7,7 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.hooman.ostovari.android.restaurantfinder.R;
+
+import java.util.ArrayList;
 
 /**
  * Created by hoomi on 28/01/2014.
@@ -15,6 +20,7 @@ import com.hooman.ostovari.android.restaurantfinder.R;
 public class MapFragment extends Fragment {
 
     private MapView mapView;
+    private ArrayList<Marker> restaurantMarkers =  new ArrayList<Marker>();
 
 
     public static MapFragment newInstance() {

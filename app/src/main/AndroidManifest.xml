@@ -35,6 +35,11 @@
             </intent-filter>
         </activity>
 
+        <service android:name="com.hooman.ostovari.restaurantfinder.communication.CommunicationService">
+            <intent-filter>
+                <action android:name="com.hooman.ostovari.restaurant.LOCATION_CHANGED"/>
+            </intent-filter>
+        </service>
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/map_api_key"/>
