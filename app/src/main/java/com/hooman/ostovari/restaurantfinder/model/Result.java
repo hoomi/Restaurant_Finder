@@ -36,6 +36,8 @@ public class Result {
         public String reference;
         @SerializedName("types")
         public List<String> types;
+        @SerializedName("geometry")
+        public Geometry geometry;
     }
 
 }

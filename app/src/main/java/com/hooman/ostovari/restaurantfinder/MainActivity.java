@@ -1,6 +1,7 @@
 package com.hooman.ostovari.restaurantfinder;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 
 import com.hooman.ostovari.android.restaurantfinder.R;
 import com.hooman.ostovari.restaurantfinder.ui.MapFragment;
+import com.hooman.ostovari.restaurantfinder.ui.RestaurantListFragment;
 import com.hooman.ostovari.restaurantfinder.utils.LocationProvider;
 
 import java.util.Locale;
@@ -26,6 +28,17 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     SectionsPagerAdapter mSectionsPagerAdapter;
     private LocationProvider locationProvider;
+    private Handler handler = new Handler();
+    private Runnable locationRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!locationProvider.isConnected() && locationProvider.isLocationEnabled()) {
+                handler.postDelayed(locationRunnable, 1000);
+            } else {
+                locationProvider.requestLocationUpdates();
+            }
+        }
+    };
 
     ViewPager mViewPager;
 
@@ -33,7 +46,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         final ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
@@ -64,12 +76,17 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     protected void onPause() {
         super.onPause();
         locationProvider.removeLocationUpdates();
+        handler.removeCallbacks(locationRunnable);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        locationProvider.requestLocationUpdates();
+        if (!locationProvider.isConnected() && locationProvider.isLocationEnabled()) {
+            handler.postDelayed(locationRunnable, 1000);
+        } else if (locationProvider.isConnected()) {
+            locationProvider.requestLocationUpdates();
+        }
     }
 
     @Override
@@ -118,7 +135,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             if (position == 0) {
                 return MapFragment.newInstance();
             } else {
-                return PlaceholderFragment.newInstance(position + 1);
+                return new RestaurantListFragment();
             }
         }
 
