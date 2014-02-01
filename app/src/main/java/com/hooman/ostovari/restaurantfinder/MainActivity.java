@@ -1,5 +1,10 @@
 package com.hooman.ostovari.restaurantfinder;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -9,14 +14,15 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.MapsInitializer;
 import com.hooman.ostovari.android.restaurantfinder.R;
+import com.hooman.ostovari.restaurantfinder.communication.CommunicationService;
 import com.hooman.ostovari.restaurantfinder.ui.MapFragment;
 import com.hooman.ostovari.restaurantfinder.ui.RestaurantListFragment;
+import com.hooman.ostovari.restaurantfinder.utils.Constants;
 import com.hooman.ostovari.restaurantfinder.utils.LocationProvider;
 
 import java.util.Locale;
@@ -26,6 +32,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     SectionsPagerAdapter mSectionsPagerAdapter;
     private LocationProvider locationProvider;
+    private OnLocationChangeListener onLocationChangeListener;
     private Handler handler = new Handler();
     private Runnable locationRunnable = new Runnable() {
         @Override
@@ -34,6 +41,21 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 handler.postDelayed(locationRunnable, 1000);
             } else {
                 locationProvider.requestLocationUpdates();
+                startService(new Intent(MainActivity.this, CommunicationService.class).setAction(Constants.Intents.DOWNLOAD_NEAR_BY_RESTAURANTS).putExtra(LocationClient.KEY_LOCATION_CHANGED,locationProvider.getLastKnowLocation()));
+            }
+        }
+    };
+
+
+    private BroadcastReceiver locationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Constants.Intents.LOCATION_CHANGED.equals(intent.getAction())) {
+                Location location = LocationProvider.getLocationFromIntent(intent);
+                startService(new Intent(MainActivity.this, CommunicationService.class).setAction(Constants.Intents.DOWNLOAD_NEAR_BY_RESTAURANTS).putExtra(LocationClient.KEY_LOCATION_CHANGED,location));
+                if (onLocationChangeListener != null) {
+                    onLocationChangeListener.onLocationChanged(location);
+                }
             }
         }
     };
@@ -81,6 +103,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         super.onPause();
         locationProvider.removeLocationUpdates();
         handler.removeCallbacks(locationRunnable);
+        unregisterReceiver(locationReceiver);
+    }
+
+    public void setOnLocationChangeListener(OnLocationChangeListener onLocationChangeListener) {
+        this.onLocationChangeListener = onLocationChangeListener;
     }
 
     @Override
@@ -90,33 +117,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             handler.postDelayed(locationRunnable, 1000);
         } else if (locationProvider.isConnected()) {
             locationProvider.requestLocationUpdates();
+            startService(new Intent(this, CommunicationService.class).setAction(Constants.Intents.DOWNLOAD_NEAR_BY_RESTAURANTS).putExtra(LocationClient.KEY_LOCATION_CHANGED, locationProvider.getLastKnowLocation()));
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        registerReceiver(locationReceiver,new IntentFilter("com.hooman.ostovari.restaurant.LOCATION_CHANGED"));
     }
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-        // When the given tab is selected, switch to the corresponding page in
-        // the ViewPager.
         mViewPager.setCurrentItem(tab.getPosition());
     }
 
@@ -160,5 +167,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             }
             return null;
         }
+    }
+
+    public interface OnLocationChangeListener {
+        public void onLocationChanged(Location newLocation);
     }
 }

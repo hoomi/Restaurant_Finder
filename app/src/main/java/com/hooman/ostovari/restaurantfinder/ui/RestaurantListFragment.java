@@ -1,6 +1,7 @@
 package com.hooman.ostovari.restaurantfinder.ui;
 
 import android.database.Cursor;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -17,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.hooman.ostovari.android.restaurantfinder.R;
+import com.hooman.ostovari.restaurantfinder.MainActivity;
 import com.hooman.ostovari.restaurantfinder.db.tables.RestaurantTable;
 import com.hooman.ostovari.restaurantfinder.utils.Constants;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -24,10 +26,11 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 /**
  * Created by hoomi on 28/01/2014.
  */
-public class RestaurantListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class RestaurantListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,MainActivity.OnLocationChangeListener {
 
     private ExpandableListView restaurantList;
     private ProgressBar progressBar;
+    private Location myLocation = null;
 
 
     @Override
@@ -45,6 +48,14 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
             }
         });
         progressBar = (ProgressBar) v.findViewById(R.id.v_progress);
+        if (savedInstanceState != null) {
+            Location location = savedInstanceState.getParcelable("location");
+            if (location != null) {
+                Bundle b = new Bundle();
+                b.putParcelable("location",location);
+                getLoaderManager().restartLoader(Constants.Loaders.RESTAURANT_ID,b,this);
+            }
+        }
         return v;
     }
 
@@ -52,13 +63,38 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setListShown(false);
-        getLoaderManager().initLoader(Constants.Loaders.RESTAURANT_ID, null, this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (myLocation != null) {
+            outState.putParcelable("location",myLocation);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((MainActivity)getActivity()).setOnLocationChangeListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ((MainActivity)getActivity()).setOnLocationChangeListener(null);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         if (id == Constants.Loaders.RESTAURANT_ID) {
-            return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION, null, null, RestaurantTable.Cols.RATING + " DESC");
+            Location location = bundle.getParcelable("location");
+            String latString = location.getLatitude() < 0 ? "+" + (-location.getLatitude()) : -location.getLatitude() + "";
+            String lonString = location.getLongitude() < 0 ? "+" + (-location.getLongitude()) : -location.getLongitude() + "";
+            // The where clause is just an approximation. Since we do not need a very high accuracy this would work
+            return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION,
+                    "(" + RestaurantTable.Cols.LAT + latString + ") * (" + RestaurantTable.Cols.LAT + latString + ")" +
+                            " + (" + RestaurantTable.Cols.LNG + lonString + ")*(" + RestaurantTable.Cols.LNG + lonString + ") * 14000000000<=" + Constants.MILE * Constants.MILE, null, RestaurantTable.Cols.RATING + " DESC");
         }
         return null;
     }
@@ -71,7 +107,6 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
                 restaurantList.setAdapter(new RestaurantAdapter(cursor));
             } else {
                 ((RestaurantAdapter) restaurantList.getExpandableListAdapter()).swapCursor(cursor);
-
             }
         }
 
@@ -91,6 +126,16 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
     public void setListShown(boolean show) {
         progressBar.setVisibility(show ? View.GONE : View.VISIBLE);
         restaurantList.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onLocationChanged(Location newLocation) {
+        if (myLocation == null) {
+            Bundle b =  new Bundle();
+            b.putParcelable("location", newLocation);
+            getLoaderManager().restartLoader(Constants.Loaders.RESTAURANT_ID, b, this);
+        }
+        myLocation =  newLocation;
     }
 
     class RestaurantAdapter extends BaseExpandableListAdapter {

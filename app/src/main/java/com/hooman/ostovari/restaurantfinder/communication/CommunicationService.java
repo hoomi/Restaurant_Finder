@@ -37,7 +37,7 @@ public class CommunicationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (Constants.Intents.LOCATION_CHANGED.equals(intent.getAction())) {
+        if (Constants.Intents.DOWNLOAD_NEAR_BY_RESTAURANTS.equals(intent.getAction())) {
             getPlacesNearBy(intent);
         }
     }
@@ -45,7 +45,7 @@ public class CommunicationService extends IntentService {
     private void getPlacesNearBy(Intent intent) {
         Location location = LocationProvider.getLocationFromIntent(intent);
         try {
-            Result result = client.getNearPlaces(location, 1600);
+            Result result = client.getNearPlaces(location, Constants.MILE);
             insertToDatabase(result);
         } catch (IOException e) {
             e.printStackTrace();

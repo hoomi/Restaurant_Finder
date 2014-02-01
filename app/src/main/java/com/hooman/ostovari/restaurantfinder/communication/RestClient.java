@@ -26,7 +26,6 @@ public class RestClient {
 
     public RestClient(String api_key) {
         this.api_key = api_key;
-        httpClient = AndroidHttpClient.newInstance("Restaurant_Finder");
         GSON = new Gson();
     }
 
@@ -39,6 +38,7 @@ public class RestClient {
                 "&query=restaurant";
         Result result = null;
         try {
+            httpClient = AndroidHttpClient.newInstance("Restaurant_Finder");
             HttpUriRequest getRequest = new HttpGet(urlString);
             HttpResponse httpResponse = httpClient.execute(getRequest);
             if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {

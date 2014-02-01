@@ -128,7 +128,7 @@ public final class GeneralUtils {
 
     public static PendingIntent getLocationIntent(Context context) {
         Intent i = new Intent(Constants.Intents.LOCATION_CHANGED);
-        return PendingIntent.getService(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public static void disableBroadcastReceiver(Context context, Class<? extends BroadcastReceiver> receiverClass) {

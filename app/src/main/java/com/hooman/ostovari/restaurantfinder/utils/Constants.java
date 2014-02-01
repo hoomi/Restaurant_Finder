@@ -6,6 +6,7 @@ package com.hooman.ostovari.restaurantfinder.utils;
 public class Constants {
 
     public static final String BASE = "com.hooman.ostovari.restaurant";
+    public static final int MILE = 1600;
 
     public class GooglePlaceConstant {
         public final static String SERVER_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json";

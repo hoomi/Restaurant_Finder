@@ -1,6 +1,7 @@
 package com.hooman.ostovari.restaurantfinder.ui;
 
 import android.database.Cursor;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -25,11 +28,11 @@ import java.util.ArrayList;
 /**
  * Created by hoomi on 28/01/2014.
  */
-public class MapFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MapFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, GoogleMap.OnMyLocationChangeListener {
 
     private MapView mapView;
-    private ArrayList<Restaurant> restaurantMarkers =  new ArrayList<Restaurant>();
-
+    private Location myCurrentLocation;
+    private final float ZOOM_LEVEL = 13.5f;
 
     public static MapFragment newInstance() {
         return new MapFragment();
@@ -37,7 +40,7 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.map_fragment,container,false);
+        return inflater.inflate(R.layout.map_fragment, container, false);
     }
 
     @Override
@@ -45,19 +48,30 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
         super.onViewCreated(view, savedInstanceState);
         mapView = (MapView) view.findViewById(R.id.v_map);
         mapView.onCreate(savedInstanceState);
-        mapView.getMap().setMyLocationEnabled(true);
-        getLoaderManager().initLoader(Constants.Loaders.RESTAURANT_ID,null,this);
+        if (savedInstanceState != null) {
+            myCurrentLocation = savedInstanceState.getParcelable("location");
+            if (myCurrentLocation != null) {
+                mapView.getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(myCurrentLocation.getLatitude(), myCurrentLocation.getLongitude()), ZOOM_LEVEL));
+                Bundle b = new Bundle();
+                b.putParcelable("location", myCurrentLocation);
+                getLoaderManager().restartLoader(Constants.Loaders.RESTAURANT_ID, b, this);
+
+            }
+        }
     }
 
     @Override
     public void onResume() {
         mapView.onResume();
+        mapView.getMap().setMyLocationEnabled(true);
+        mapView.getMap().setOnMyLocationChangeListener(this);
         super.onResume();
     }
 
     @Override
     public void onPause() {
         mapView.onPause();
+        mapView.getMap().setMyLocationEnabled(false);
         super.onPause();
     }
 
@@ -75,13 +89,22 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
+        if (myCurrentLocation != null) {
+            outState.putParcelable("location", myCurrentLocation);
+        }
+        super.onSaveInstanceState(outState);
     }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         if (id == Constants.Loaders.RESTAURANT_ID) {
-            return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION, null, null, null);
+            Location location = bundle.getParcelable("location");
+            String latString = location.getLatitude() < 0 ? "+" + (-location.getLatitude()) : -location.getLatitude() + "";
+            String lonString = location.getLongitude() < 0 ? "+" + (-location.getLongitude()) : -location.getLongitude() + "";
+            return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION,
+                    "(" + RestaurantTable.Cols.LAT + latString + ") * (" + RestaurantTable.Cols.LAT + latString + ")" +
+                            " + (" + RestaurantTable.Cols.LNG + lonString + ")*(" + RestaurantTable.Cols.LNG + lonString + ") * 14000000000<=" + Constants.MILE * Constants.MILE, null, null);
         }
         return null;
     }
@@ -99,12 +122,11 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
         if (cursorLoader.getId() == Constants.Loaders.RESTAURANT_ID) {
-
+            mapView.getMap().clear();
         }
     }
 
-    private AsyncTask<Cursor, Restaurant, ArrayList<Restaurant>>  restaurantArrayListAsyncTask;
-
+    private AsyncTask<Cursor, Restaurant, ArrayList<Restaurant>> restaurantArrayListAsyncTask;
 
 
     private void addRestaurantsToTheMap(Cursor cursor) {
@@ -112,7 +134,6 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
             restaurantArrayListAsyncTask = new AsyncTask<Cursor, Restaurant, ArrayList<Restaurant>>() {
                 @Override
                 protected void onPreExecute() {
-                    restaurantMarkers.clear();
                     mapView.getMap().clear();
                     super.onPreExecute();
                 }
@@ -127,7 +148,7 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
                         restaurant.setName(tempCursor.getString(tempCursor.getColumnIndex(RestaurantTable.Cols.NAME)));
                         restaurant.setRating(tempCursor.getFloat(tempCursor.getColumnIndex(RestaurantTable.Cols.RATING)));
                         restaurant.setIcon(tempCursor.getString(tempCursor.getColumnIndex(RestaurantTable.Cols.ICON)));
-                        restaurant.setLocation(new LatLng(tempCursor.getDouble(tempCursor.getColumnIndex(RestaurantTable.Cols.LAT)),tempCursor.getDouble(tempCursor.getColumnIndex(RestaurantTable.Cols.LNG))));
+                        restaurant.setLocation(new LatLng(tempCursor.getDouble(tempCursor.getColumnIndex(RestaurantTable.Cols.LAT)), tempCursor.getDouble(tempCursor.getColumnIndex(RestaurantTable.Cols.LNG))));
                         publishProgress(restaurant);
                     }
                     return null;
@@ -135,20 +156,30 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
 
                 @Override
                 protected void onPostExecute(ArrayList<Restaurant> restaurants) {
-                    restaurantMarkers = restaurants;
                     restaurantArrayListAsyncTask = null;
                 }
 
                 @Override
                 protected void onProgressUpdate(Restaurant... values) {
-                    Marker marker = mapView.getMap().addMarker(RestaurantMarkerUtils.createMarker(values[0].getLocation(),values[0].getName()));
+                    Marker marker = mapView.getMap().addMarker(RestaurantMarkerUtils.createMarker(values[0].getLocation(), values[0].getName()));
                     values[0].setMarker(marker);
-                    restaurantMarkers.add(values[0]);
                     super.onProgressUpdate(values);
                 }
             };
             restaurantArrayListAsyncTask.execute(cursor)
-;        }
+            ;
+        }
 
+    }
+
+    @Override
+    public void onMyLocationChange(Location location) {
+        if (myCurrentLocation == null) {
+            mapView.getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), ZOOM_LEVEL));
+            Bundle b = new Bundle();
+            b.putParcelable("location", location);
+            getLoaderManager().initLoader(Constants.Loaders.RESTAURANT_ID, b, this);
+        }
+        myCurrentLocation = location;
     }
 }

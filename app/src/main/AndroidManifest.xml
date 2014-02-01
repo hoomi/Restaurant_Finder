@@ -36,11 +36,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.hooman.ostovari.restaurantfinder.communication.CommunicationService">
-            <intent-filter>
-                <action android:name="com.hooman.ostovari.restaurant.LOCATION_CHANGED" />
-            </intent-filter>
-        </service>
+        <service android:name="com.hooman.ostovari.restaurantfinder.communication.CommunicationService"/>
 
         <provider
             android:exported="false"
