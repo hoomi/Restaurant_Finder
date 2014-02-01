@@ -34,7 +34,7 @@ public class RestaurantApplication extends Application {
                 .resetViewBeforeLoading(false)  // default
                 .delayBeforeLoading(1000)
                 .cacheInMemory(false) // default
-                .cacheOnDisc(false) // default
+                .cacheOnDisc(true) // default
                 .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) // default
                 .bitmapConfig(Bitmap.Config.ARGB_8888) // default
                 .displayer(new SimpleBitmapDisplayer()) // default

@@ -28,7 +28,7 @@ public class RestaurantTable {
     }
 
     public static final String[] PROJECTION = new String[]{
-           Cols._ID,Cols.NAME, Cols.LAT, Cols.LNG, Cols.FORMATTED_ADDRESS, Cols.ICON, Cols.RATING
+           Cols._ID,Cols.NAME, Cols.LAT, Cols.LNG, Cols.FORMATTED_ADDRESS, Cols.ICON, Cols.RATING, Cols.TYPES
     };
     public static final String CREATE_TABLE = "CREATE TABLE " + NAME + " (" +
             Cols._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +

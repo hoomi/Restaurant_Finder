@@ -8,7 +8,6 @@
 
     <TextView
         android:id="@+id/v_restaurant_name"
-        android:textIsSelectable="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toLeftOf="@+id/v_rating"
@@ -16,14 +15,13 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:textSize="16sp"
-        />
+        android:textSize="16sp" />
 
-    <RatingBar
-        android:id="@+id/v_rating_bar"
+    <TextView
+        android:id="@+id/v_rating"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

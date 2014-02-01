@@ -6,7 +6,8 @@
         android:id="@+id/v_restaurant_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:groupIndicator="@null"/>
+        android:groupIndicator="@null"
+        />
 
     <ProgressBar
         android:id="@+id/v_progress"

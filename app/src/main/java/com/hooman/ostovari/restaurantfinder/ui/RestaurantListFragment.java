@@ -9,11 +9,11 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.hooman.ostovari.android.restaurantfinder.R;
@@ -25,6 +25,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
  * Created by hoomi on 28/01/2014.
  */
 public class RestaurantListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
     private ExpandableListView restaurantList;
     private ProgressBar progressBar;
 
@@ -33,15 +34,14 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.list_fragment, container, false);
         restaurantList = (ExpandableListView) v.findViewById(R.id.v_restaurant_list);
-        restaurantList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        restaurantList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-                if (parent.isGroupExpanded(groupPosition)) {
-                    parent.collapseGroup(groupPosition);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (restaurantList.isGroupExpanded(position)) {
+                    restaurantList.collapseGroup(position);
                 } else {
-                    parent.expandGroup(groupPosition);
+                    restaurantList.expandGroup(position);
                 }
-                return false;
             }
         });
         progressBar = (ProgressBar) v.findViewById(R.id.v_progress);
@@ -58,7 +58,7 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         if (id == Constants.Loaders.RESTAURANT_ID) {
-            return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION, null, null, null);
+            return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION, null, null, RestaurantTable.Cols.RATING + " DESC");
         }
         return null;
     }
@@ -124,28 +124,37 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
 
         @Override
         public Object getGroup(int groupPosition) {
-            return new Object();
+            return null;
         }
 
         @Override
         public Object getChild(int groupPosition, int childPosition) {
-            return new Object();
+            return null;
         }
 
         @Override
         public long getGroupId(int groupPosition) {
-            return groupPosition;
+            mCursor.moveToPosition(groupPosition);
+            return mCursor.getLong(mCursor.getColumnIndex(RestaurantTable.Cols._ID));
         }
+
 
         @Override
         public long getChildId(int groupPosition, int childPosition) {
-            return groupPosition;
+            mCursor.moveToPosition(groupPosition);
+            return mCursor.getLong(mCursor.getColumnIndex(RestaurantTable.Cols._ID));
         }
 
         @Override
         public boolean hasStableIds() {
+            return true;
+        }
+
+        @Override
+        public boolean areAllItemsEnabled() {
             return false;
         }
+
 
         @Override
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
@@ -159,8 +168,8 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
                 convertView.setTag(viewHolder);
             }
             viewHolder = (ParentViewHolder) convertView.getTag();
-            viewHolder.ratingBar.setProgress(Math.round(mCursor.getFloat(ratingIndex)));
             viewHolder.restaurantNameTextView.setText(mCursor.getString(nameIndex));
+            viewHolder.ratingTextView.setText("Rating: " + mCursor.getFloat(ratingIndex));
             return convertView;
         }
 
@@ -184,26 +193,27 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
 
         @Override
         public boolean isChildSelectable(int groupPosition, int childPosition) {
-            return true;
+            return false;
         }
 
-        public void swapCursor(Cursor cursor) {
+        public Cursor swapCursor(Cursor cursor) {
+            if (cursor == mCursor) return mCursor;
             if (mCursor != null && !mCursor.isClosed()) {
                 mCursor.close();
             }
             mCursor = cursor;
             notifyDataSetChanged();
+            return cursor;
         }
     }
 
     class ParentViewHolder {
         TextView restaurantNameTextView;
-        RatingBar ratingBar;
+        TextView ratingTextView;
 
         ParentViewHolder(View v) {
             restaurantNameTextView = (TextView) v.findViewById(R.id.v_restaurant_name);
-            ratingBar = (RatingBar) v.findViewById(R.id.v_rating_bar);
-            ratingBar.setMax(5);
+            ratingTextView = (TextView) v.findViewById(R.id.v_rating);
         }
     }
 
