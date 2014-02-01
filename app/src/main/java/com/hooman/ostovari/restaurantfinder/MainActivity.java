@@ -12,6 +12,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.maps.MapsInitializer;
 import com.hooman.ostovari.android.restaurantfinder.R;
 import com.hooman.ostovari.restaurantfinder.ui.MapFragment;
 import com.hooman.ostovari.restaurantfinder.ui.RestaurantListFragment;
@@ -65,6 +67,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
         LocationProvider.initialize(this);
         locationProvider = LocationProvider.getInstance();
+
+        try {
+            MapsInitializer.initialize(this);
+        } catch (GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
     }
 
 

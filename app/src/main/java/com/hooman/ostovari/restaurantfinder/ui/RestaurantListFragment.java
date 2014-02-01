@@ -18,13 +18,13 @@ import android.widget.TextView;
 
 import com.hooman.ostovari.android.restaurantfinder.R;
 import com.hooman.ostovari.restaurantfinder.db.tables.RestaurantTable;
+import com.hooman.ostovari.restaurantfinder.utils.Constants;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 /**
  * Created by hoomi on 28/01/2014.
  */
 public class RestaurantListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private final int RESTAURANT_ID = 1;
     private ExpandableListView restaurantList;
     private ProgressBar progressBar;
 
@@ -52,12 +52,12 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setListShown(false);
-        getLoaderManager().initLoader(RESTAURANT_ID, null, this);
+        getLoaderManager().initLoader(Constants.Loaders.RESTAURANT_ID, null, this);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-        if (id == RESTAURANT_ID) {
+        if (id == Constants.Loaders.RESTAURANT_ID) {
             return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION, null, null, null);
         }
         return null;
@@ -65,7 +65,7 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        if (cursorLoader.getId() == RESTAURANT_ID) {
+        if (cursorLoader.getId() == Constants.Loaders.RESTAURANT_ID) {
             setListShown(true);
             if (restaurantList.getExpandableListAdapter() == null) {
                 restaurantList.setAdapter(new RestaurantAdapter(cursor));
@@ -79,7 +79,7 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
-        if (cursorLoader.getId() == RESTAURANT_ID) {
+        if (cursorLoader.getId() == Constants.Loaders.RESTAURANT_ID) {
             setListShown(false);
             if (restaurantList.getExpandableListAdapter() != null) {
                 ((RestaurantAdapter) restaurantList.getExpandableListAdapter()).swapCursor(null);

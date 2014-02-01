@@ -15,4 +15,9 @@ public class Constants {
         public static final String DOWNLOAD_NEAR_BY_RESTAURANTS = BASE + ".DOWNLOAD_NEAR_BY_RESTAURANTS";
         public static final String LOCATION_CHANGED = BASE + ".LOCATION_CHANGED";
     }
+
+    public class Loaders {
+        public static final int RESTAURANT_ID = 1;
+
+    }
 }
