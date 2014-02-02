@@ -21,12 +21,13 @@ import com.hooman.ostovari.android.restaurantfinder.R;
 import com.hooman.ostovari.restaurantfinder.MainActivity;
 import com.hooman.ostovari.restaurantfinder.db.tables.RestaurantTable;
 import com.hooman.ostovari.restaurantfinder.utils.Constants;
+import com.hooman.ostovari.restaurantfinder.utils.LocationProvider;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 /**
  * Created by hoomi on 28/01/2014.
  */
-public class RestaurantListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,MainActivity.OnLocationChangeListener {
+public class RestaurantListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, MainActivity.OnLocationChangeListener {
 
     private ExpandableListView restaurantList;
     private ProgressBar progressBar;
@@ -48,15 +49,23 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
             }
         });
         progressBar = (ProgressBar) v.findViewById(R.id.v_progress);
+        Location location;
         if (savedInstanceState != null) {
-            Location location = savedInstanceState.getParcelable("location");
+            location = savedInstanceState.getParcelable("location");
+        } else {
+            location = LocationProvider.getInstance().getLastKnowLocation();
+        }
+        requestRestaurants(location);
+        return v;
+    }
+
+    private void requestRestaurants(Location location) {
             if (location != null) {
                 Bundle b = new Bundle();
-                b.putParcelable("location",location);
-                getLoaderManager().restartLoader(Constants.Loaders.RESTAURANT_ID,b,this);
+                b.putParcelable("location", location);
+                getLoaderManager().restartLoader(Constants.Loaders.RESTAURANT_ID, b, this);
             }
-        }
-        return v;
+        myLocation = location;
     }
 
     @Override
@@ -68,7 +77,7 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (myLocation != null) {
-            outState.putParcelable("location",myLocation);
+            outState.putParcelable("location", myLocation);
         }
         super.onSaveInstanceState(outState);
     }
@@ -76,13 +85,13 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onResume() {
         super.onResume();
-        ((MainActivity)getActivity()).setOnLocationChangeListener(this);
+        ((MainActivity) getActivity()).setOnLocationChangeListener(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        ((MainActivity)getActivity()).setOnLocationChangeListener(null);
+        ((MainActivity) getActivity()).setOnLocationChangeListener(null);
     }
 
     @Override
@@ -130,12 +139,7 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public void onLocationChanged(Location newLocation) {
-        if (myLocation == null) {
-            Bundle b =  new Bundle();
-            b.putParcelable("location", newLocation);
-            getLoaderManager().restartLoader(Constants.Loaders.RESTAURANT_ID, b, this);
-        }
-        myLocation =  newLocation;
+       requestRestaurants(newLocation);
     }
 
     class RestaurantAdapter extends BaseExpandableListAdapter {

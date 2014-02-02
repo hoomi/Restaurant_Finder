@@ -96,7 +96,6 @@ public class RestaurantContentProvider extends ContentProvider {
         if (db == null) {
             return null;
         }
-        SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
         int match = URI_MATCHER.match(uri);
         if (match != 1 && match != 100) {
             return null;

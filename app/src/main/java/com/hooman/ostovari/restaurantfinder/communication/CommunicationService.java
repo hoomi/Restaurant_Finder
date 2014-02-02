@@ -72,6 +72,7 @@ public class CommunicationService extends IntentService {
         }
         try {
             getContentResolver().applyBatch(RestaurantContentProvider.AUTHORITY, contentProviderOperations);
+            getContentResolver().notifyChange(RestaurantTable.CONTENT_URI, null);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (OperationApplicationException e) {
