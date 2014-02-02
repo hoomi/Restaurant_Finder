@@ -103,7 +103,7 @@ public class RestaurantListFragment extends Fragment implements LoaderManager.Lo
             // The where clause is just an approximation. Since we do not need a very high accuracy this would work
             return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION,
                     "(" + RestaurantTable.Cols.LAT + latString + ") * (" + RestaurantTable.Cols.LAT + latString + ")" +
-                            " + (" + RestaurantTable.Cols.LNG + lonString + ")*(" + RestaurantTable.Cols.LNG + lonString + ") * 14000000000<=" + Constants.MILE * Constants.MILE, null, RestaurantTable.Cols.RATING + " DESC");
+                            " + (" + RestaurantTable.Cols.LNG + lonString + ")*(" + RestaurantTable.Cols.LNG + lonString + ") * 13800000000<=" + Constants.MILE * Constants.MILE, null, RestaurantTable.Cols.RATING + " DESC");
         }
         return null;
     }

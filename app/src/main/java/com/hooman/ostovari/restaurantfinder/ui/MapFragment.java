@@ -104,7 +104,7 @@ public class MapFragment extends Fragment implements LoaderManager.LoaderCallbac
             String lonString = location.getLongitude() < 0 ? "+" + (-location.getLongitude()) : -location.getLongitude() + "";
             return new CursorLoader(getActivity(), RestaurantTable.CONTENT_URI, RestaurantTable.PROJECTION,
                     "(" + RestaurantTable.Cols.LAT + latString + ") * (" + RestaurantTable.Cols.LAT + latString + ")" +
-                            " + (" + RestaurantTable.Cols.LNG + lonString + ")*(" + RestaurantTable.Cols.LNG + lonString + ") * 14000000000<=" + Constants.MILE * Constants.MILE, null, null);
+                            " + (" + RestaurantTable.Cols.LNG + lonString + ")*(" + RestaurantTable.Cols.LNG + lonString + ") * 13800000000<=" + Constants.MILE * Constants.MILE, null, null);
         }
         return null;
     }
